@@ -401,7 +401,7 @@ const url = `https://www.reddit.com/r/${chosen}.json?limit=100`;
     const posts = json.data?.children?.filter(p => p.data?.permalink);
     if (!posts || posts.length === 0) return showMsg('No posts found for this entry.');
     const post = posts[Math.floor(Math.random()*posts.length)].data;
-    window.open(`https://www.reddit.com${post.permalink}`,'_blank');
+    window.location.href = `https://www.reddit.com${post.permalink}`;
   } catch (e) {
     showMsg('Problem fetching story. Reddit may be rate-limiting, or the entry does not exist.');
   }
@@ -417,9 +417,9 @@ document.getElementById('urt-random-link').onclick = function() {
   if (!all.length) return showMsg('No subreddits or users to pick from!');
   const chosen = all[Math.floor(Math.random()*all.length)];
   if (chosen.type === 'subreddit') {
-    window.open(`https://www.reddit.com/r/${chosen.name}`,'_blank');
+    window.location.href = `https://www.reddit.com/r/${chosen.name}`;
   } else {
-    window.open(`https://www.reddit.com/user/${chosen.name}`,'_blank');
+    window.location.href = `https://www.reddit.com/user/${chosen.name}`;
   }
 };
 
