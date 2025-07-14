@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Uncanny Reddit Tales
 // @namespace    https://github.com/Myst1cX/uncanny-reddit-tales
-// @version      2.3
+// @version      2.4
 // @description  Browse horror/scary/uncanny Reddit stories from your own collection of handpicked users and subreddits. Import/export/edit your list, fetch random stories, and more!
 // @author       Myst1cX
 // @match        https://www.reddit.com/*
