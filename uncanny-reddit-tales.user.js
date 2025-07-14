@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Uncanny Reddit Tales
 // @namespace    https://github.com/Myst1cX/uncanny-reddit-tales
-// @version      2.5
+// @version      2.6
 // @description  Browse horror/scary/uncanny Reddit stories from your own collection of handpicked users and subreddits. Import/export/edit your list, fetch random stories, and more!
 // @author       Myst1cX
 // @match        https://www.reddit.com/*
@@ -80,7 +80,45 @@ urtStyle.textContent = `
 }
 .urt-row { display: flex; flex-direction: row; gap: 6px; align-items: center; }
 .urt-row.vertical { flex-direction: column; align-items: stretch; gap: 7px; }
-#urt-modal textarea, #urt-modal input[type="file"] {
+#urt-modal textarea {
+  width: 100%;
+  background: #222;
+  color: #dadada;
+  border: 1px solid #333;
+  border-radius: 4px;
+  margin-bottom: 0;
+  padding: 7px;
+  font-size: 0.96em;
+  resize: none;
+  height: 80px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+#urt-search-subs, #urt-search-users {
+  background: #282828;
+  color: #d7dadc;
+  border: 1px solid #444;
+  border-radius: 4px;
+  font-size: 0.93em;           /* match dropdown font size */
+  padding: 0 5px;              /* match dropdown horizontal padding */
+  margin-top: 8px;
+  margin-left: 12px;
+  margin-right: 12px;
+  width: 180px;
+  min-width: 90px;
+  max-width: 240px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color .15s;
+  display: inline-block;
+  vertical-align: middle;
+  height: 1.8em;               /* exactly match dropdown height */
+  line-height: 1.6;
+}
+#urt-search-subs:focus, #urt-search-users:focus {
+  border-color: #444;
+}
+#urt-modal input[type="file"] {
   width: 100%; background: #222; color: #dadada;
   border: 1px solid #333; border-radius: 4px; margin-bottom: 0; padding: 7px; font-size: 0.96em;
 }
@@ -123,6 +161,17 @@ urtStyle.textContent = `
   font-size: 0.93em;
   text-align: center;
   display: none;
+}
+#urt-modal:focus,
+#urt-modal-container:focus,
+.urt-sort-inline:focus,
+.urt-list-label:focus,
+.urt-sort-control:focus,
+#urt-search-subs:focus,
+#urt-search-users:focus,
+#urt-modal input[type="file"]:focus,
+#urt-modal textarea:focus {
+  outline: none !important;
 }
 @media (max-width: 480px) {
   #urt-modal-container { min-width: unset; padding: 4px 1px; }
@@ -176,11 +225,12 @@ const modalHTML = `
     </div>
     <textarea id="urt-import" placeholder="Paste your list here (r/subreddit, u/username, or any Reddit URL)"></textarea>
     <div class="urt-row vertical">
-      <div>
-        <div class="urt-sort-inline">
+     <div>
+ <div class="urt-sort-inline">
   <div class="urt-list-label">
     Subreddits <span class="urt-label-hint">(r/name, one per line)</span>
   </div>
+  <input type="text" id="urt-search-subs" placeholder="Search subreddits..." />
   <span class="urt-sort-control">
     <label for="urt-sort-subs">Sort:</label>
     <select id="urt-sort-subs">
@@ -191,13 +241,14 @@ const modalHTML = `
     </select>
   </span>
 </div>
-        <textarea id="urt-subreddits"></textarea>
-      </div>
+  <textarea id="urt-subreddits"></textarea>
+</div>
       <div>
-        <div class="urt-sort-inline">
+ <div class="urt-sort-inline">
   <div class="urt-list-label">
     Users <span class="urt-label-hint">(u/name, one per line)</span>
   </div>
+  <input type="text" id="urt-search-users" placeholder="Search users..." />
   <span class="urt-sort-control">
     <label for="urt-sort-users">Sort:</label>
     <select id="urt-sort-users">
@@ -208,8 +259,8 @@ const modalHTML = `
     </select>
   </span>
 </div>
-        <textarea id="urt-users"></textarea>
-      </div>
+  <textarea id="urt-users"></textarea>
+</div>
     </div>
     <div class="urt-buttons bottom">
       <button id="urt-random-story">Random Story</button>
@@ -221,6 +272,32 @@ const modalHTML = `
 </div>
 `;
 document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+function filterTextArea(type, searchInputId, textAreaId) {
+  const searchValue = document.getElementById(searchInputId).value.trim().toLowerCase();
+  const lists = loadLists();
+  const items = type === 'subreddit' ? lists.subreddits : lists.users;
+  const prefix = type === 'subreddit' ? 'r/' : 'u/';
+  const filtered = searchValue
+    ? items.filter(x => (prefix + x).toLowerCase().includes(searchValue))
+    : items;
+  document.getElementById(textAreaId).value = filtered.map(x => prefix + x).join('\n');
+}
+
+document.getElementById('urt-search-subs').addEventListener('input', function() {
+  if (!this.value.trim()) {
+    refreshTextAreas();
+  } else {
+    filterTextArea('subreddit', 'urt-search-subs', 'urt-subreddits');
+  }
+});
+document.getElementById('urt-search-users').addEventListener('input', function() {
+  if (!this.value.trim()) {
+    refreshTextAreas();
+  } else {
+    filterTextArea('user', 'urt-search-users', 'urt-users');
+  }
+});
 
 // --- Utility Functions ---
 function showMsg(msg, timeout=3200) {
@@ -381,22 +458,16 @@ document.getElementById('urt-file').onchange = function(evt) {
   reader.readAsText(file);
 };
 
-function getCurrentList(type) {
-  const textarea = document.getElementById(type === 'subreddit' ? 'urt-subreddits' : 'urt-users');
-  const lines = textarea.value.trim().split('\n').map(x => x.trim()).filter(Boolean);
-  if (type === 'subreddit') return lines.map(x => x.replace(/^r\//i, '').toLowerCase());
-  else return lines.map(x => x.replace(/^u\//i, '').toLowerCase());
-}
-
 document.getElementById('urt-random-story').onclick = async function() {
-  refreshTextAreas(); // Ensure textarea is up to date
+  refreshTextAreas();
   const subs = document.getElementById('urt-subreddits').value
   .split('\n').map(x => x.replace(/^r\//i, '').trim().toLowerCase()).filter(Boolean);
-if (!subs.length) return showMsg('No subreddits to pick from!');
-const chosen = subs[Math.floor(Math.random() * subs.length)];
-const url = `https://www.reddit.com/r/${chosen}.json?limit=100`;
+  if (!subs.length) return showMsg('No subreddits to pick from!');
+  const chosen = subs[Math.floor(Math.random() * subs.length)];
   try {
-    const resp = await fetch(url);
+    const resp = await fetch(`https://www.reddit.com/r/${chosen}.json?limit=100`);
+    if (resp.status === 403) return showMsg('Subreddit is private or restricted.');
+    if (resp.status === 404) return showMsg('Subreddit does not exist.');
     const json = await resp.json();
     const posts = json.data?.children?.filter(p => p.data?.permalink);
     if (!posts || posts.length === 0) return showMsg('No posts found for this entry.');
@@ -408,7 +479,7 @@ const url = `https://www.reddit.com/r/${chosen}.json?limit=100`;
 };
 
 document.getElementById('urt-random-link').onclick = function() {
-  refreshTextAreas(); // Ensure textarea is up to date
+  refreshTextAreas();
   const subs = document.getElementById('urt-subreddits').value
   .split('\n').map(x => x.replace(/^r\//i, '').trim().toLowerCase()).filter(Boolean);
   const users = document.getElementById('urt-users').value
@@ -423,12 +494,13 @@ document.getElementById('urt-random-link').onclick = function() {
   }
 };
 
-// --- Modal Show/Hide circle button with Reddit-style refresh icon ---
+// --- Modal Show/Hide circle button ---
 const circleBtn = document.createElement('div');
 circleBtn.id = 'urt-circle-btn';
 circleBtn.title = 'Uncanny Reddit Tales';
 circleBtn.innerHTML = `<img src="https://raw.githubusercontent.com/Myst1cX/uncanny-reddit-tales/main/Readdit.png"
     style="width:100%;height:100%;object-fit:contain;display:block;" />`;
+document.body.appendChild(circleBtn);
 
 circleBtn.onclick = () => {
   const modal = document.getElementById('urt-modal');
@@ -441,10 +513,30 @@ circleBtn.onclick = () => {
   }
 };
 
-document.body.appendChild(circleBtn);
-
 document.getElementById('urt-close').onclick = function() {
   document.getElementById('urt-modal').style.display = 'none';
+};
+
+// --- Floating, Draggable Modal with bounds ---
+let dragOffset = null;
+document.getElementById('urt-modal-container').onmousedown = function(e) {
+  if (e.target.closest('#urt-title-row') || e.target.closest('h2')) {
+    const modal = document.getElementById('urt-modal');
+    dragOffset = { x: e.clientX - modal.offsetLeft, y: e.clientY - modal.offsetTop };
+    document.body.style.userSelect = "none";
+    document.onmousemove = function(ev) {
+      let left = Math.max(0, Math.min(window.innerWidth - modal.offsetWidth, ev.clientX - dragOffset.x));
+      let top = Math.max(0, Math.min(window.innerHeight - modal.offsetHeight, ev.clientY - dragOffset.y));
+      modal.style.left = left + "px";
+      modal.style.top = top + "px";
+    };
+    document.onmouseup = function() {
+      dragOffset = null;
+      document.onmousemove = null;
+      document.onmouseup = null;
+      document.body.style.userSelect = "";
+    };
+  }
 };
 
 refreshTextAreas();
