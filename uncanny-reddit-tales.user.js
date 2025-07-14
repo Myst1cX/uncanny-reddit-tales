@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Uncanny Reddit Tales
 // @namespace    https://github.com/Myst1cX/uncanny-reddit-tales
-// @version      2.4
+// @version      2.5
 // @description  Browse horror/scary/uncanny Reddit stories from your own collection of handpicked users and subreddits. Import/export/edit your list, fetch random stories, and more!
 // @author       Myst1cX
 // @match        https://www.reddit.com/*
@@ -131,8 +131,8 @@ urtStyle.textContent = `
 }
 #urt-circle-btn {
   position: fixed;
-  bottom: 22px;
-  right: 30px;
+  bottom: 5px;
+  right: 29px;
   z-index: 9998;
   width: 38px;
   height: 38px;
@@ -428,8 +428,7 @@ const circleBtn = document.createElement('div');
 circleBtn.id = 'urt-circle-btn';
 circleBtn.title = 'Uncanny Reddit Tales';
 circleBtn.innerHTML = `<img src="https://raw.githubusercontent.com/Myst1cX/uncanny-reddit-tales/main/Readdit.png"
-  alt="Uncanny Reddit Tales Icon"
-  style="width:100%;height:100%;object-fit:contain;display:block;" />`;
+    style="width:100%;height:100%;object-fit:contain;display:block;" />`;
 
 circleBtn.onclick = () => {
   const modal = document.getElementById('urt-modal');
