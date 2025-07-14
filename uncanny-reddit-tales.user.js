@@ -1,11 +1,15 @@
 // ==UserScript==
-// @name         Cryptic Reddit Tales
+// @name         Uncanny Reddit Tales
 // @namespace    https://github.com/Myst1cX/uncanny-reddit-tales
 // @version      2.3
 // @description  Browse horror/scary/uncanny Reddit stories from your own collection of handpicked users and subreddits. Import/export/edit your list, fetch random stories, and more!
 // @author       Myst1cX
 // @match        https://www.reddit.com/*
 // @grant        none
+// @homepageURL  https://github.com/Myst1cX/uncanny-reddit-tales
+// @supportURL   https://github.com/Myst1cX/uncanny-reddit-tales/issues
+// @updateURL    https://raw.githubusercontent.com/Myst1cX/uncanny-reddit-tales/main/uncanny-reddit-tales.user.js
+// @downloadURL  https://raw.githubusercontent.com/Myst1cX/uncanny-reddit-tales/main/uncanny-reddit-tales.user.js
 // ==/UserScript==
 
 (function() {
@@ -163,7 +167,7 @@ const modalHTML = `
 <div id="urt-modal">
   <div id="urt-modal-container">
     <div id="urt-title-row">
-      <h2>Cryptic Reddit Tales</h2>
+      <h2>Uncanny Reddit Tales</h2>
     </div>
     <div class="urt-row">
       <button id="urt-import-btn">Import</button>
@@ -343,7 +347,7 @@ document.getElementById('urt-export-btn').onclick = function() {
   const a = document.createElement('a');
   a.style.display = 'none';
   a.href = url;
-  a.download = 'cryptic-reddit-tales-list.txt';
+  a.download = 'uncanny-reddit-tales-list.txt';
   document.body.appendChild(a);
   a.click();
   setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
@@ -422,9 +426,9 @@ document.getElementById('urt-random-link').onclick = function() {
 // --- Modal Show/Hide circle button with Reddit-style refresh icon ---
 const circleBtn = document.createElement('div');
 circleBtn.id = 'urt-circle-btn';
-circleBtn.title = 'Cryptic Reddit Tales';
+circleBtn.title = 'Uncanny Reddit Tales';
 circleBtn.innerHTML = `<img src="https://raw.githubusercontent.com/Myst1cX/uncanny-reddit-tales/main/Readdit.png"
-  alt="Cryptic Reddit Tales Icon"
+  alt="Uncanny Reddit Tales Icon"
   style="width:100%;height:100%;object-fit:contain;display:block;" />`;
 
 circleBtn.onclick = () => {
